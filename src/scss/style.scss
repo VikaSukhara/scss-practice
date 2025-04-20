@@ -1,1 +1,718 @@
-@use "reset";
+// @use "reset";
+@use "sass:math";
+@use "sass:list";
+@use "sass:map";
+
+.page-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.wrapper {
+  background-color: aquamarine;
+  width: 700px;
+  height: 400px;
+  margin: 150px auto;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.badge {
+  color: white;
+  padding: 20px 50px;
+}
+
+.btn-wrapper {
+  display: flex;
+  margin: 0 auto;
+  gap: 10px;
+}
+
+.badge-completed {
+  background-color: purple;
+}
+.badge-ended {
+  background-color: red;
+}
+.badge-active {
+  background-color: green;
+}
+
+//@each
+
+$status: (
+  "completed": purple,
+  "ended": red,
+  "active": green,
+);
+
+@each $name, $color in $status {
+  .badge-#{$name} {
+    background-color: $color;
+  }
+}
+
+//@each
+
+@each $name, $color in (completed: purple, ended: red, active: green) {
+  .badge-#{$name} {
+    background-color: $color;
+  }
+}
+
+// ітерація 1
+
+// $name: completed;
+// $color: purple;
+
+// .bagde-completed {
+//   background-color: purple;
+// }
+
+// Task 1
+
+// За допомогою @each згенеруй класи .badge-{назва}
+// Використовуй @if, щоб:
+// Якщо статус — archived, додати також opacity: 0.5
+// Інакше — звичайний background-color
+
+$status-colors: (
+  "completed": purple,
+  "active": green,
+  "ended": red,
+  "archived": gray,
+);
+
+@each $key, $value in $status-colors {
+  .badge-#{$key} {
+    background-color: $value;
+
+    @if ($key == "archived") {
+      opacity: 0.5;
+    }
+  }
+}
+
+// Task 2
+
+$status-colors: (
+  active: (
+    color: green,
+    is-active: true,
+  ),
+  completed: (
+    color: purple,
+    is-active: false,
+  ),
+  archived: (
+    color: gray,
+    is-active: false,
+  ),
+  warning: (
+    color: orange,
+    is-active: true,
+  ),
+);
+
+// Твоя задача — написати міксин generate-badges, який:
+// Створює класи .badge-<ключ> для кожного статусу.
+// Встановлює background-color з мапи.
+// Якщо is-active == false, додає opacity: 0.5.
+
+@mixin generate-badges($status-colors) {
+  @each $key, $map in $status-colors {
+    // проходимо по зовнішній мапі.
+    // @debug $map // (color: green, is-active: true)
+
+    $color: map-get($map, color); //витягуємо значення ключа color.
+    $is-active: map-get($map, is-active);
+
+    .badge-#{$key} {
+      background-color: $color;
+
+      @if $is-active == false {
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+@include generate-badges($status-colors);
+
+// Task 3
+
+// Задача: Генерація кнопок з різним кольором і розміром
+// У тебе є мапа з кнопками, де кожна кнопка має:
+
+// color
+
+// size (наприклад: sm, md, lg)
+
+// disabled (true або false)
+
+// 🔸 Створи міксин generate-buttons, який:
+// Проходить через цю мапу.
+
+// Створює клас .btn-[name]
+
+// Встановлює background-color і padding залежно від size:
+
+// sm: 4px 8px
+
+// md: 6px 12px
+
+// lg: 8px 16px
+
+// Якщо disabled: true, додає opacity: 0.5 і cursor: not-allowed
+
+$buttons: (
+  primary: (
+    color: blue,
+    size: md,
+    disabled: false,
+  ),
+  secondary: (
+    color: gray,
+    size: sm,
+    disabled: true,
+  ),
+  danger: (
+    color: red,
+    size: lg,
+    disabled: false,
+  ),
+);
+
+@mixin generate-buttons($buttons) {
+  @each $key, $map in $buttons {
+    //   @debug $key // archived
+    // // @debug $map // primary (color: blue, size: md, disabled: false)
+
+    $color: map-get($map, color);
+    $size: map-get($map, size);
+    $disabled: map-get($map, disabled);
+    $padding: 0;
+
+    @if $size == sm {
+      $padding: 4px 8px;
+    } @else if $size == md {
+      $padding: 6px 12px;
+    } @else if $size == lg {
+      $padding: 8px 16px;
+    }
+
+    .badge-#{$key} {
+      background-color: $color;
+      padding: $padding;
+
+      @if $disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+@include generate-buttons($buttons);
+
+$cards: (
+  basic: (
+    background-color: lightgray,
+    border: 1px solid gray,
+    padding: 15px,
+    is-active: true,
+  ),
+  featured: (
+    background-color: yellow,
+    border: 1px solid orange,
+    padding: 20px,
+    is-active: false,
+  ),
+  premium: (
+    background-color: gold,
+    border: 2px solid darkgoldenrod,
+    padding: 25px,
+    is-active: true,
+  ),
+);
+
+// Створи міксин generate-cards, який буде проходити через мапу карток.
+// Створює класи для кожної картки у форматі .card-[name].
+// Встановлює background-color, border, і padding на основі значень у мапі.
+// Якщо картка має is-active: false, додає до неї властивість opacity: 0.5.
+
+// @mixin generate-cards($cards) {
+//   @each $key, $map in $cards {
+//     $background-color: map-get($map, background-color);
+//     $border: map-get($map, border);
+//     $padding: map-get($map, padding);
+//     $is-active: map-get($map, is-active);
+//     .card-#{$key} {
+//       background-color: $background-color;
+//       border: $border;
+//       padding: $padding;
+
+//       @debug $is-active;
+
+//       @if $is-active == false {
+//         opacity: 0.5;
+//       }
+//     }
+//   }
+// }
+
+// @include generate-cards($cards);
+
+// Task 4
+
+// 2. Міксин
+// Створи міксин generate-cards, який:
+// Проходить через кожну картку в мапі.
+// Створює клас .card-[name], де [name] — це ключ мапи (наприклад, small-card, medium-card).
+// Встановлює стиль для кожної картки залежно від її параметрів:
+
+$cards: (
+  small-card: (
+    background-color: lightblue,
+    border: 1px solid darkblue,
+    padding: 10px,
+    is-active: true,
+    size: small,
+  ),
+  medium-card: (
+    background-color: lightgreen,
+    border: 1px solid darkgreen,
+    padding: 20px,
+    is-active: false,
+    size: medium,
+  ),
+  large-card: (
+    background-color: lightyellow,
+    border: 1px solid darkyellow,
+    padding: 30px,
+    is-active: true,
+    size: large,
+  ),
+);
+
+@mixin generate-cards($cards) {
+  @each $key, $map in $cards {
+    $background-color: map-get($map, background-color);
+    $border: map-get($map, border);
+    $padding: map-get($map, padding);
+    $is-active: map-get($map, is-active);
+    $size: map-get($map, size);
+    .card-#{$key} {
+      background-color: $background-color;
+      border: $border;
+      padding: $padding;
+
+      @if $is-active==false {
+        opacity: 0.5;
+      }
+
+      // Задаємо margin залежно від розміру картки
+      @if $size == small {
+        margin: 10px;
+      } @else if $size == medium {
+        margin: 20px;
+      } @else if $size == large {
+        margin: 30px;
+      }
+    }
+  }
+}
+
+@include generate-cards($cards);
+
+// Task 6
+
+// h1: 32px
+
+// h2: 28px
+
+// h3: 24px
+
+// h4: 20px
+
+// h5: 16px
+
+@mixin generate-heading-font-sizes() {
+  @for $i from 1 through 5 {
+    .heading-h#{$i} {
+      font-size: #{32px - ($i - 1) * 4};
+      // @debug #{32px - ($i - 1) * 4}
+
+      // // 32 - 1 * 4 = 32 - 4 = 28
+      // // 32 - 2 * 4 = 32 - 8 = 24
+    }
+  }
+}
+
+@include generate-heading-font-sizes();
+
+// Task 7 @for
+
+// Завдання:
+// Створи міксин для генерації класів для сітки (grid) з фіксованими розмірами колонок, яка буде змінюватися залежно від кількості елементів у сітці. Тобі потрібно створити класи для різних відстаней між колонками, використовуючи директиву @for.
+
+@mixin generate-grid($columns) {
+  @for $i from 1 through $columns {
+    .grid-#{$i} {
+      grid-template-columns: repeat($i, 1fr);
+    }
+  }
+}
+
+@include generate-grid(6);
+
+@mixin generate-margins($count) {
+  @for $i from 1 through $count {
+    .margin-#{$i} {
+      margin: $i * 5px;
+    }
+  }
+}
+
+@include generate-margins(5);
+
+// Task 8
+
+@mixin generate-widths($steps) {
+  @for $i from 1 through $steps {
+    .w-#{$i} {
+      width: $i * 10%;
+    }
+  }
+}
+
+@include generate-widths(3);
+
+@mixin generate-badges($count) {
+  @for $i from 1 through $count {
+    .badges-#{$i} {
+      padding: $i * 2px;
+
+      @if ($i % 2 == 0) {
+        background-color: lightgray;
+      } @else {
+        background-color: lightblue;
+      }
+
+      font-size: 12px + ($i * 1px);
+    }
+  }
+}
+
+@include generate-badges(5);
+
+$alert-colors: (light, info, warning, danger, success);
+
+@mixin generate-alerts($count) {
+  @for $i from 1 through $count {
+    .alert-#{$i} {
+      padding: $i * 5px;
+      font-size: 12px + $i * 2px;
+      color: nth($alert-colors, $i);
+
+      @if ($i % 2 == 0) {
+        border: 1px solid black;
+      }
+    }
+  }
+}
+
+@include generate-alerts(5);
+
+// 0px + 1 → 1 (бо в Sass: число без одиниць + число з одиницями → одиниці зникають)
+// 24px / 1
+// → це "px поділити на одиничне без одиниць"
+// → виходить просто 24 (без px)
+
+// @function add-unit($value){
+//     @return #{$value}px
+// }
+
+// @debug add-unit(20);
+
+@function has-unit($value) {
+  //   @if (unitless($value)) {
+  //     @return false;
+  //   } @else {
+  //     @return true;
+  //   }
+
+  @return not unitless($value);
+}
+
+// @debug has-unit(20);
+// @debug has-unit(9px);
+
+// @function px-to-rem($value) {
+//   $font-size: 16px;
+//   @return #{$value / $font-size}rem;
+// }
+
+// @debug px-to-rem(20px);
+
+// @function strip-unit($value) {
+//   @return math.div($value, 1px); // $value / ($value * 0 + 1);
+// }
+
+// // @debug strip-unit(14px);
+
+// @function fluid-scale($min-size, $max-size, $viewport-min, $viewport-max) {
+//   $min: strip-unit($min-size);
+//   $max: strip-unit($max-size);
+//   $vp-min: strip-unit($viewport-min);
+//   $vp-max: strip-unit($viewport-max);
+
+//   $slope: $max - $min;
+//   $range: $vp-max - $vp-min;
+
+//   @return calc(
+//     #{$min-size} + #{$slope} * ((100vw - #{$viewport-min}) / #{$range})
+//   );
+// }
+
+// @debug fluid-scale(14px, 24px, 320px, 1200px);
+
+// // Завдання 1: Перевірка наявності елемента в списку
+// Створи функцію is-in-list($value, $list), яка перевіряє, чи міститься елемент у списку.
+
+// Використовуй функцію index($list, $value) для пошуку індексу елемента в списку.
+
+$list: (apple, banana, orange, grape, pear);
+
+@function is-in-list($value, $list) {
+  @if (list.index($list, $value) != null) {
+    @return true;
+  } @else {
+    @return false;
+  }
+}
+// @debug is-in-list("banana", $list); // Має повернути true
+// @debug is-in-list("mango", $list); // Має повернути false
+
+// Завдання 2: Створення списку з певною кількістю елементів
+// Напиши функцію generate-range($start, $end), яка генерує список цілих чисел від $start до $end (включно).
+
+// Технічні моменти:
+
+// Використовуй цикл @for для створення списку.
+
+// Поверни список, який буде мати вигляд (1, 2, 3, 4, ..., n).
+
+@function generate-range($start, $end) {
+  $range: ();
+  @for $i from $start through $end {
+    $range: append($range, $i);
+  }
+
+  @return $range;
+}
+
+// @debug generate-range(1, 5);
+
+// Завдання 3: Об'єднання двох списків
+// Створи міксин combine-lists($list1, $list2), який об'єднує два списки в один.
+// Поверни новий об'єднаний список.
+
+$list1: ("apple", "banana", "cherry");
+$list2: ("date", "elderberry", "fig");
+
+@mixin combine-lists($list1, $list2) {
+  $combined-list: $list1;
+  @each $el in $list2 {
+    $combined-list: append($combined-list, $el);
+  }
+  @debug $combined-list;
+}
+
+// @debug combine-lists($list1, $list2);
+
+// Завдання 4: Обчислення суми елементів списку
+// Створи функцію sum-list($list), яка обчислює суму всіх чисел у списку.
+
+// Технічні моменти:
+
+// Використовуй @each для перебору списку.
+
+// Додай кожен елемент до змінної і поверни результат.
+
+// $list: (1, 2, 3);
+
+@function sum-list($list) {
+  $sum: 0;
+  @each $el in $list {
+    $sum: $sum + $el;
+  }
+
+  @return $sum;
+}
+
+// @debug sum-list($list);
+
+// Завдання 5: Перетворення списку на рядок
+// Напиши функцію list-to-string($list), яка перетворює список на рядок з елементами, розділеними комами.
+
+// Технічні моменти:
+
+// Використовуй функцію @each для перебору елементів.
+
+// Форматуй результат як рядок.
+
+// $list: (1, 2, 3);
+
+@function list-to-string($list) {
+  $sum: "";
+
+  @each $el in $list {
+    $sum: $sum + "#{$el}, ";
+  }
+
+  @return $sum;
+}
+
+// @debug list-to-string($list);
+
+// Завдання 6: Вибір елементів за парними індексами
+// Створи функцію get-even-index-elements($list), яка повертає список елементів з парними індексами.
+
+// Технічні моменти:
+
+// Використовуй @for з перевіркою на парність індексу.
+
+// Поверни новий список з елементами на парних індексах.
+
+$list: ("apple", "banana");
+
+@function get-even-index-elements($list) {
+  $result: ();
+
+  @for $i from 1 through list.length($list) {
+    @if ($i%2==0) {
+      $result: append($result, nth($list, $i));
+    }
+  }
+  @return $result;
+}
+
+// @debug get-even-index-elements($list);
+
+// Завдання 7: Зворотний порядок списку
+// Напиши функцію reverse-list($list), яка повертає список у зворотньому порядку.
+
+// Технічні моменти:
+
+// Використовуй цикл @for для обходу списку з кінця.
+
+// Поверни новий список у зворотному порядку.
+
+$list: ("apple", "banana");
+
+@function reverse-list($list) {
+  $result: ();
+
+  @for $i from list.length($list) through 1 {
+    $result: append($result, list.nth($list, $i));
+  }
+  @return $result;
+}
+
+// @debug reverse-list($list);
+//
+
+// авдання 1: Пошук значення за ключем
+// Напиши функцію get-color($colors, $key), яка:
+
+// Приймає словник кольорів і ключ
+
+// Повертає значення за вказаним ключем
+
+$colors: (
+  primary: #007bff,
+  danger: #dc3545,
+  success: #28a745,
+);
+
+@function get-color($colors, $key) {
+  @return map.get($colors, $key);
+}
+
+// Очікується: #dc3545
+// @debug get-color($colors, danger);
+
+// 🔹 Завдання 2: Перевірка наявності ключа
+// Напиши функцію has-key($map, $key), яка:
+// Повертає true, якщо ключ є в словнику
+// Інакше — false
+
+// @function has-key($colors, $key) {
+//   $isAvailable: map.get($colors, $key);
+//   @if ($isAvailable) {
+//     @return true;
+//   } @else {
+//     @return false;
+//   }
+// }
+
+// @debug has-key($colors, primary); // true
+// @debug has-key($colors, warning); // false
+// @debug map.has-key($colors, danger); //  вбудована функція
+
+// 🔹 Завдання 3: Оновлення значення в словнику
+// Створи міксин update-color($map, $key, $value), який:
+// Замінює значення за ключем або додає нову пару
+// Повертає оновлений словник
+
+@function update-color($map, $key, $value) {
+  @return map.set($map, $key, $value);
+}
+
+// Наприклад, оновити або додати "warning: #ffc107"
+// @debug update-color($colors, warning, #ffc107);
+
+
+// 🔹 Завдання 4: Створити клас для кожного кольору
+// Створи міксин generate-color-classes($map), який:
+// Для кожної пари key–value у словнику
+// Генерує клас .text-{key} з кольором color: value
+
+$colors: (
+  primary: #007bff,
+  danger: #dc3545,
+  success: #28a745,
+  warning: #ffc107,
+);
+
+@mixin generate-color-classes($map) {
+  @each $key, $value in $map {
+    .text-#{$key} {
+      color: $value;
+    }
+  }
+}
+
+@include generate-color-classes($colors);
+
+// 🔹 Завдання 5: Об’єднання двох словників
+// Напиши функцію merge-maps($map1, $map2), яка:
+// Об’єднує два словники
+// У випадку конфлікту ключів — значення з $map2 мають пріоритет
+
+$map1: (
+  a: 1,
+  b: 2,
+);
+$map2: (
+  b: 20,
+  c: 30,
+);
+
+@function merge-maps($map1, $map2) {
+  @return map.merge($map1, $map2);
+}
+@debug merge-maps($map1, $map2); // => (a: 1, b: 20, c: 30)
